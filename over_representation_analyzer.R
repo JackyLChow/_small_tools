@@ -7,6 +7,7 @@
 library(org.Hs.eg.db)
 library(ReactomePA)
 library(clusterProfiler)
+library(data.table)
 
 # # input is results from DGE in RNAseq pipeline
 # data <- readRDS("~/Documents/BFX_proj/RNAseq_pipeline/_output/Chow_PNAS_2020/differential_gene_expression_results.RDS")

@@ -7,6 +7,7 @@ library(org.Hs.eg.db)
 library(ReactomePA)
 library(clusterProfiler)
 library(msigdbr)
+library(data.table)
 
 # input is results from differential gene expression, requires gene symbol as rownames and to identify ranking column
 
