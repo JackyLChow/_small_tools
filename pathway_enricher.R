@@ -64,8 +64,9 @@ pathway_enricher <- function(dge_results, ranking_column = "logFC"){
   set.seed(415); pe_output[["Hallmark_GSEA"]] <- GSEA(ranked_list_, TERM2GENE = msig_h_, scoreType = "pos") %>% data.frame()
   
   # polish
-  pe_output <- data.frame(rbindlist(pe_output, idcol = "geneset_database"))
+  pe_output <- data.frame(rbindlist(pe_output[sapply(pe_output, nrow) > 0], idcol = "geneset_database"))
   pe_output <- entrezid_to_symbol(pe_output, "core_enrichment")
   
   return(pe_output)
+  rm(ordered_genes_, ranked_list_, pe_output, key_, msig_h_)
 }
