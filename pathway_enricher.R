@@ -9,6 +9,21 @@ library(clusterProfiler)
 library(msigdbr)
 library(data.table)
 
+# function is to replace ENTREZID with SYMBOL
+entrezid_to_symbol <- function(enrichment_results, entrezid_column_name){
+  enrichment_results_ <- enrichment_results
+  enrichment_results_[, "symbol"] <- NULL
+  for(i in rownames(enrichment_results_)){
+    entrezids_ <- unlist(str_split(enrichment_results_[i, entrezid_column_name], "/"))
+    symbols_ <- AnnotationDbi::select(org.Hs.eg.db,
+                                      keys = entrezids_,
+                                      columns = "SYMBOL",
+                                      keytype = "ENTREZID")[, "SYMBOL"]
+    enrichment_results_[i, "symbol"] <- paste(symbols_, collapse = "/")
+  }
+  return(enrichment_results_)
+}
+
 # input is results from differential gene expression, requires gene symbol as rownames and to identify ranking column
 
 pathway_enricher <- function(dge_results, ranking_column = "logFC"){
