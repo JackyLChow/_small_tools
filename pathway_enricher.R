@@ -8,6 +8,7 @@ library(ReactomePA)
 library(clusterProfiler)
 library(msigdbr)
 library(data.table)
+library(dplyr)
 
 # function is to replace ENTREZID with SYMBOL
 entrezid_to_symbol <- function(enrichment_results, entrezid_column_name){
