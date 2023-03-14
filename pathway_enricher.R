@@ -27,7 +27,7 @@ entrezid_to_symbol <- function(enrichment_results, entrezid_column_name){
 
 # input is results from differential gene expression, requires gene symbol as rownames and to identify ranking column
 
-pathway_enricher <- function(dge_results, ranking_column = "logFC"){
+pathway_enricher <- function(dge_results, ranking_column = "logFC", pval_cut = 0.1, convert_to_symbol = T){
   # object to be returned
   pe_output <- list() 
   
@@ -64,24 +64,26 @@ pathway_enricher <- function(dge_results, ranking_column = "logFC"){
   ## reactome pathway enrichment
   set.seed(415); pe_output[["Reactome_GSEA"]] <- gsePathway(ranked_list_,
                                                             maxGSSize = 500,
-                                                            pvalueCutoff = 0.1) %>% data.frame()
+                                                            pvalueCutoff = pval_cut) %>% data.frame()
   
   ## KEGG pathway enrichment
   set.seed(415); pe_output[["KEGG_GSEA"]] <- gseKEGG(ranked_list_,
                                                      organism = "hsa",
-                                                     pvalueCutoff = 0.1) %>% data.frame()
+                                                     pvalueCutoff = pval_cut) %>% data.frame()
   
   ## GO pathway enrichment
   set.seed(415); pe_output[["GO_GSEA"]] <- gseGO(ranked_list_,
                                                  OrgDb = org.Hs.eg.db,
-                                                 pvalueCutoff = 0.1) %>% data.frame()
+                                                 pvalueCutoff = pval_cut) %>% data.frame()
   
   ## Hallmark pathway enrichment
   set.seed(415); pe_output[["Hallmark_GSEA"]] <- GSEA(ranked_list_, TERM2GENE = msig_h_, scoreType = "pos") %>% data.frame()
   
   # polish
   pe_output <- data.frame(rbindlist(pe_output[sapply(pe_output, nrow) > 0], idcol = "geneset_database"))
-  pe_output <- entrezid_to_symbol(pe_output, "core_enrichment")
+  if(convert_to_symbol == T){
+    pe_output <- entrezid_to_symbol(pe_output, "core_enrichment")
+  }
   
   return(pe_output)
   rm(ordered_genes_, ranked_list_, pe_output, key_, msig_h_)
