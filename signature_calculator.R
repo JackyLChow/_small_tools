@@ -1,9 +1,11 @@
 # signature scores
 ## calculate scores
-signature_calculator <- function(signature_list, expression_table){
+signature_calculator <- function(signature_list, # list has names as signature names; signature is character vector
+                                 expression_table){ # expression table has gene names as rows
   sig_scores <- list()
   for(i in names(signature_list)){
     genes <- signature_list[[i]]
+    missing_genes <- genes[!genes %in% rownames(expression_table)]
     if(sum(genes %in% rownames(expression_table)) > 1){
       sig_scores[[i]] <- colMeans(expression_table[genes[genes %in% rownames(expression_table)], ])
     }
