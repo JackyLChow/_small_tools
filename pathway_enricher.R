@@ -25,36 +25,38 @@ entrezid_to_symbol <- function(enrichment_results, entrezid_column_name){
   return(enrichment_results_)
 }
 
-# input is results from differential gene expression, requires gene symbol as rownames and to identify ranking column
-
-pathway_enricher <- function(dge_results, ranking_column = "logFC", pval_cut = 0.1, convert_to_symbol = T){
+# input is results from differential gene expression, requires ENTREZID column and to identify ranking column
+pathway_enricher <- function(dge_results,
+                             ranking_column = "logFC", entrez_id_column = "ENTREZID",
+                             pval_cut = 0.1, convert_to_symbol = T){
+  # load hallmark pathways
+  msig_h_ <- msigdbr(species = "Homo sapiens", category = "H") %>%
+    dplyr::select(gs_name, entrez_gene) %>%
+    dplyr::rename(ont = gs_name, gene = entrez_gene)
+  
   # object to be returned
   pe_output <- list() 
   
   # make ranked gene list
   ## extract ordered gene list by ranking_column
   ordered_genes_ <- dge_results
-  ordered_genes_ <- data.frame(Symbol = rownames(ordered_genes_), ranking_column = ordered_genes_[, ranking_column])
+  ordered_genes_ <- data.frame(ordered_genes_[, entrez_id_column], ordered_genes_[, ranking_column])
+  names(ordered_genes_) <- c("ENTREZID", "ranking_column")
   ordered_genes_ <- ordered_genes_[order(ordered_genes_$ranking_column, decreasing = T), ]
   
-  ## generate ENTREZID key from synonym table
-  key_ <- AnnotationDbi::select(org.Hs.eg.db,
-                                keys = ordered_genes_$Symbol,
-                                columns = c("ENTREZID"),
-                                keytype = "SYMBOL")
-  key_ <- key_[!duplicated(key_$SYMBOL), ] # remove duplicated symbols
+  # ## generate ENTREZID key from synonym table
+  # key_ <- AnnotationDbi::select(org.Hs.eg.db,
+  #                               keys = ordered_genes_$Symbol,
+  #                               columns = c("ENTREZID"),
+  #                               keytype = "SYMBOL")
+  # key_ <- key_[!duplicated(key_$SYMBOL), ] # remove duplicated symbols
   
-  ## load hallmark pathways
-  msig_h_ <- msigdbr(species = "Homo sapiens", category = "H") %>%
-    dplyr::select(gs_name, entrez_gene) %>%
-    dplyr::rename(ont = gs_name, gene = entrez_gene)
-  
-  ## assign ENTREZID to gene
-  ordered_genes_ <- left_join(ordered_genes_, key_, by = c("Symbol" = "SYMBOL"))
-  
-  ## filter genes with duplicated and missing ENTREZID
-  ordered_genes_ <- ordered_genes_[!is.na(ordered_genes_$ENTREZID), ]
-  ordered_genes_ <- ordered_genes_[!duplicated(ordered_genes_$ENTREZID), ]
+  # ## assign ENTREZID to gene
+  # ordered_genes_ <- left_join(ordered_genes_, key_, by = c("Symbol" = "SYMBOL"))
+  # 
+  # ## filter genes with duplicated and missing ENTREZID
+  # ordered_genes_ <- ordered_genes_[!is.na(ordered_genes_$ENTREZID), ]
+  # ordered_genes_ <- ordered_genes_[!duplicated(ordered_genes_$ENTREZID), ]
   
   ## make ranked list
   ranked_list_ <- ordered_genes_[, "ranking_column"]
