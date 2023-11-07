@@ -6,16 +6,21 @@ signature_calculator <- function(signature_list, # list has names as signature n
   sig_scores <- list()
   for(i in names(signature_list)){
     genes <- signature_list[[i]]
-    missing_genes <- genes[!genes %in% gene_data$Gene_Symbol]
-    genes <- genes[genes %in% gene_data$Gene_Symbol]
-    if(sum(genes %in% gene_data$Gene_Symbol) > 1){
-      sig_scores[[i]] <- colMeans(qnt_[gene_data$Gene_Symbol %in% genes, ])
+    missing_genes <- genes[!genes %in% rownames(qnt_)]
+    if(length(missing_genes) > 0){
+      cat(paste("missing genes for ", i, ":", missing_genes, "\n"))
     }
-    if(sum(genes %in% gene_data$Gene_Symbol) == 1){
-      sig_scores[[i]] <- qnt_[gene_data$Gene_Symbol %in% genes, ]
+    if(length(missing_genes) == 0){
+      cat(paste("all genes present for", i, "\n"))
     }
-    if(sum(genes %in% gene_data$Gene_Symbol) == 0){
-      cat(paste("genes in", i, "signature not present in expression table\n"))
+    genes <- genes[genes %in% rownames(qnt_)]
+    if(length(genes) > 1){
+      sig_scores[[i]] <- colMeans(qnt_[genes, ])
+    }
+    if(length(genes) == 1){
+      sig_scores[[i]] <- qnt_[genes, ]
+    }
+    if(length(genes) == 0){
     }
     rm(i)
   }
