@@ -11,15 +11,21 @@ library(data.table)
 library(dplyr)
 
 # function is to replace ENTREZID with SYMBOL
-entrezid_to_symbol <- function(enrichment_results, entrezid_column_name){
+entrezid_to_symbol <- function(enrichment_results, entrezid_column_name,
+                               gene_key = NULL, gene_key_id_column = NULL, gene_key_symbol_column = NULL){
   enrichment_results_ <- enrichment_results
   enrichment_results_[, "symbol"] <- NULL
   for(i in rownames(enrichment_results_)){
     entrezids_ <- unlist(str_split(enrichment_results_[i, entrezid_column_name], "/"))
-    symbols_ <- AnnotationDbi::select(org.Hs.eg.db,
-                                      keys = entrezids_,
-                                      columns = "SYMBOL",
-                                      keytype = "ENTREZID")[, "SYMBOL"]
+    if(any(is.null(gene_key, gene_key_id_column, gene_key_symbol_column))){
+      symbols_ <- AnnotationDbi::select(org.Hs.eg.db,
+                                        keys = entrezids_,
+                                        columns = "SYMBOL",
+                                        keytype = "ENTREZID")[, "SYMBOL"]
+    }
+    if(!any(is.null(gene_key, gene_key_id_column, gene_key_symbol_column))){
+      symbols_ <- gene_key[gene_key[, gene_key_id_column] %in% entrezids_, gene_key_symbol_column]
+    }
     enrichment_results_[i, "symbol"] <- paste(symbols_, collapse = "/")
   }
   return(enrichment_results_)
@@ -29,6 +35,10 @@ entrezid_to_symbol <- function(enrichment_results, entrezid_column_name){
 pathway_enricher <- function(dge_results,
                              ranking_column = "logFC", entrez_id_column = "ENTREZID",
                              pval_cut = 0.1, convert_to_symbol = T){
+  if(!is.numeric(dge_results[, entrez_id_column])){
+    cat("\nGene ID column must be Entrez ID and numeric\n")
+  }
+  
   # load hallmark pathways
   msig_h_ <- msigdbr(species = "Homo sapiens", category = "H") %>%
     dplyr::select(gs_name, entrez_gene) %>%
@@ -43,21 +53,7 @@ pathway_enricher <- function(dge_results,
   ordered_genes_ <- data.frame(ordered_genes_[, entrez_id_column], ordered_genes_[, ranking_column])
   names(ordered_genes_) <- c("ENTREZID", "ranking_column")
   ordered_genes_ <- ordered_genes_[order(ordered_genes_$ranking_column, decreasing = T), ]
-  
-  # ## generate ENTREZID key from synonym table
-  # key_ <- AnnotationDbi::select(org.Hs.eg.db,
-  #                               keys = ordered_genes_$Symbol,
-  #                               columns = c("ENTREZID"),
-  #                               keytype = "SYMBOL")
-  # key_ <- key_[!duplicated(key_$SYMBOL), ] # remove duplicated symbols
-  
-  # ## assign ENTREZID to gene
-  # ordered_genes_ <- left_join(ordered_genes_, key_, by = c("Symbol" = "SYMBOL"))
-  # 
-  # ## filter genes with duplicated and missing ENTREZID
-  # ordered_genes_ <- ordered_genes_[!is.na(ordered_genes_$ENTREZID), ]
-  # ordered_genes_ <- ordered_genes_[!duplicated(ordered_genes_$ENTREZID), ]
-  
+
   ## make ranked list
   ranked_list_ <- ordered_genes_[, "ranking_column"]
   names(ranked_list_) <- as.character(ordered_genes_[, "ENTREZID"])
