@@ -24,21 +24,22 @@ fold_changer <- function(table_of_values = l2tpm[c("CD8A", "CD8B"), ],
   subjects <- unique(reference_samples[, subject])
   results <- list()
   for(i in subjects){
-    print(i)
     # parse out subject level data
     subject_table <- table_of_samples[table_of_samples[, subject] == i, ]
     subject_visits <- subject_table[, visit]
     subject_samples <- subject_table[, sample_column]
     subject_reference_sample <- subject_table[subject_table[, visit] == reference_visit, sample_column]
     
-    # extract subject values
+    # extract reference values
     reference_values <- table_of_values[, subject_reference_sample]
-    print(dim(reference_values))
+    if(length(subject_reference_sample) > 1){
+      reference_values <- rowMeans(reference_values)
+      subject_reference_sample <- paste(subject_reference_sample, collapse = ", ")
+    }
     
     # calculate log2 fold changes
     l2fc <- list()
     for(j in subject_samples){
-      print(j)
       l2fc[[j]] <- log2(table_of_values[, j] + 1) - log2(reference_values + 1)
     }
     l2fc <- do.call(rbind, l2fc)
