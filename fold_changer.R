@@ -9,19 +9,20 @@
 
 # try to keep in base R
 
-fold_changer <- function(table_of_values = l2tpm[c("CD8A", "CD8B"), ],
+fold_changer <- function(table_of_values = l2tpm,
                          table_of_samples = metadata,
                          sample_column = "sample",
                          subject = "subject",
                          visit = "visit",
                          reference_visit = "Screening"){
-  # viable subjects must have multiple samples
-  viable_subjects <- unique(table_of_samples[duplicated(table_of_samples[, subject]), subject])
+  # viable subjects must have samples with reference visit and samples outside reference visit
+  subject_reference <- unique(table_of_samples[table_of_samples[, visit] == reference_visit, subject])
+  subjects_outside_reference <- unique(table_of_samples[table_of_samples[, visit] != reference_visit, subject])
+  viable_subjects <- intersect(subject_reference, subjects_outside_reference)
   # identify referable samples
-  reference_samples <- table_of_samples[table_of_samples[, visit] == reference_visit &
-                                          table_of_samples[, subject] %in% viable_subjects, ]
+  viable_samples <- table_of_samples[table_of_samples[, subject] %in% viable_subjects, ]
   # filter viable subjects with reference samples
-  subjects <- unique(reference_samples[, subject])
+  subjects <- unique(viable_samples[, subject])
   results <- list()
   for(i in subjects){
     # parse out subject level data
