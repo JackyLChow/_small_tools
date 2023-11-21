@@ -23,7 +23,7 @@ fold_changer <- function(table_of_values = l2tpm[c("CD8A", "CD8B"), ],
   # filter viable subjects with reference samples
   subjects <- unique(reference_samples[, subject])
   results <- list()
-  for(i in subjects[1:6]){
+  for(i in subjects){
     print(i)
     # parse out subject level data
     subject_table <- table_of_samples[table_of_samples[, subject] == i, ]
@@ -33,6 +33,7 @@ fold_changer <- function(table_of_values = l2tpm[c("CD8A", "CD8B"), ],
     
     # extract subject values
     reference_values <- table_of_values[, subject_reference_sample]
+    print(dim(reference_values))
     
     # calculate log2 fold changes
     l2fc <- list()
