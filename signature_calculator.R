@@ -1,3 +1,7 @@
+if (!require("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+BiocManager::install("preprocessCore")
+
 library(preprocessCore)
 
 signature_calculator <- function(signature_list, # list has names as signature names; signature is character vector of genes
