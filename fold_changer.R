@@ -9,7 +9,7 @@
 
 # try to keep in base R
 
-fold_changer <- function(table_of_values = l2tpm,
+fold_changer <- function(table_of_values = tpm_symbol_,
                          table_of_samples = metadata,
                          sample_column = "sample",
                          subject = "subject",
