@@ -14,7 +14,7 @@ signature_calculator <- function(signature_list, # list has names as signature n
     genes <- signature_list[[i]]
     missing_genes <- genes[!genes %in% rownames(qnt_)]
     if(length(missing_genes == length(genes))){
-      cat(paste("\nall genes missing for", i, "\n"))
+      cat(paste("\nall genes missing for", i, ":", missing_genes, "\n"))
     }
     if(length(missing_genes) > 0){
       cat(paste("\nmissing genes for", i, ":", missing_genes, "\n"))

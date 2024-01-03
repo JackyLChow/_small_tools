@@ -12,20 +12,20 @@ library(dplyr)
 
 # function is to replace ENTREZID with SYMBOL
 entrezid_to_symbol <- function(enrichment_results, entrezid_column_name,
-                               gene_key = NULL, gene_key_id_column = NULL, gene_key_symbol_column = NULL){
+                               gene_key = gene_data, gene_key_id_column = "NCBI_Gene_ID", gene_key_symbol_column = "Gene_Symbol"){
   enrichment_results_ <- enrichment_results
   enrichment_results_[, "symbol"] <- NULL
   for(i in rownames(enrichment_results_)){
     entrezids_ <- unlist(str_split(enrichment_results_[i, entrezid_column_name], "/"))
-    if(any(is.null(gene_key, gene_key_id_column, gene_key_symbol_column))){
+    # if(any(is.null(gene_key, gene_key_id_column, gene_key_symbol_column))){
       symbols_ <- AnnotationDbi::select(org.Hs.eg.db,
                                         keys = entrezids_,
                                         columns = "SYMBOL",
                                         keytype = "ENTREZID")[, "SYMBOL"]
-    }
-    if(!any(is.null(gene_key, gene_key_id_column, gene_key_symbol_column))){
-      symbols_ <- gene_key[gene_key[, gene_key_id_column] %in% entrezids_, gene_key_symbol_column]
-    }
+    # }
+    # if(!any(is.null(gene_key, gene_key_id_column, gene_key_symbol_column))){
+    #   symbols_ <- gene_key[gene_key[, gene_key_id_column] %in% entrezids_, gene_key_symbol_column]
+    # }
     enrichment_results_[i, "symbol"] <- paste(symbols_, collapse = "/")
   }
   return(enrichment_results_)
